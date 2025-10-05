@@ -13,6 +13,7 @@ import scipy.io.wavfile as wav
 #録音した音声データをnumpy配列として扱える
 
 #【tempfile】
+#Pythonの標準ライブラリ
 #一時的なファイルやディレクトリを作成するためのモジュール
 #一時的なデータを保存するのに便利
 #使い終わったら自動的に削除される
@@ -62,46 +63,52 @@ print("録音終了")
 
 
 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
+
+#tempfile.NamedTemporaryFile(...)  tempfileモジュールのNamedTemporaryFile関数 
+#一時ファイルを作って, ファイルオブジェクトを返す. ファイル名が一意に決まり, OSの一時ディレクトリ(temp)に作成される
+#【withとは？】
+#普通にファイルを作るプログラムを書いてみる↓
+
+#f = open("test.txt", "w")
+#f.write("hello")
+#f.close()  　# ←自分で閉じないといけない
+
+# f = open("test.txt", "w")　→ "test.txt" を「書き込みモード（w）」で開き,変数fに代入する（変数はfileやfpでもなんでもOK）
+#f.write("hello")  → 変数f（test.txt）に, "hello"を書き込む
+#f.close()  → fを閉じる（閉じないと, 他のプログラムから開けなかったり, データが保存されなかったりする）
+
+#通常open()でファイルを開くと, 処理が終わった後にf.close()で閉じる必要がある
+#withを使うと, ブロック(インデントで囲まれた部分. 後述する)を抜けるときに自動でclose()が呼ばれる
+#つまり, 自分でclose()を書く必要がない
+#先のコードをwithを使って書くと↓
+
+#with open("test.txt", "w") as f:
+#    f.write("hello")   # ←close()を書かなくてよい
+
+#withブロックを抜けると自動でclose()が呼ばれる→→ファイルが開きっぱなしにならない
+#【NamedTemporaryFile関数の引数説明】
+#suffix=".wav"　→拡張子を指定（例：音声ファイル）
+#delete=False　→ブロックを抜けても自動で削除しない
+#as tmpfile → 変数tmpfileにファイルオブジェクトを代入する
+
     wav.write(tmpfile.name, sr, audio)
     print("保存先:", tmpfile.name)
 
-# 録音した音声を再生して確認
-sd.play(audio, sr)
-sd.wait()
-print("再生終了")
+#ブロックはこのインデントで囲まれている処理（wav.write(...)とprint(...）の部分）
 
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+#wav.write(...)  → scipy.io.wavfileモジュールのwrite関数で, データをwavファイルに書き込む(wavファイル専用の書き込み関数, その他.mp3などの圧縮形式には対応していない)
+#.wavは非圧縮PCM形式の音声で, 単純なバイナリ構造だからPythonで簡単に書き込みができる
+#【scipy.io.wavfile.write()関数の引数説明】
+#tmpfile.name  → さっき作ったtempファイルの名前path
+#sr  → サンプリングレート（16000Hz）
+#audio  → 録音した音声データ（numpy配列）
+# まとめると録音した音声 audio をNamedTemporaryFile関数で作った空の.wavに書き込み保存
+#別に引数にサンプリングレートを指定しなくても, audio自体にサンプリングレートの情報は含まれているが, wav.write()関数は明示的に指定する必要がある
+#なぜなら, 保存するときにサンプリングレートの情報がないと, 再生するときに正しい速度で再生できなくなるから（1秒あたりの測定回数ということを考えるとすぐわかる）
+
+#print("保存先:", tmpfile.name)  → 保存先のファイルパスを表示
+
+
+sd.play(audio, sr)      # 録音した音声を再生して確認, 引数にサンプリングレートを指定して正しい再生速度を設定
+sd.wait()               # 非同期関数の処理
+print("再生終了") 
