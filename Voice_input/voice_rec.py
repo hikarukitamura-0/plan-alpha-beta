@@ -2,6 +2,8 @@ import numpy as np
 import sounddevice as sd
 import tempfile
 import scipy.io.wavfile as wav
+import whisper as wp
+import os
 
 #【numpy】
 #行列やベクトルなど配列をつくれる
@@ -112,3 +114,40 @@ with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
 sd.play(audio, sr)      # 録音した音声を再生して確認, 引数にサンプリングレートを指定して正しい再生速度を設定
 sd.wait()               # 非同期関数の処理
 print("再生終了") 
+
+#録音処理完了
+
+print("Whisper(small)の読み込み中...")
+# Whisperモデルの読み込み（軽量版なら "small" なども可）
+model = wp.load_model("small")  # "tiny", "small", "medium", "large" も選べる
+print("読み込み完了")
+
+# 文字起こし
+result = model.transcribe(tmpfile.name, language="ja")  # 日本語なら language="ja" tmpfile.name は音声ファイルのパスを引数に渡す
+
+
+
+print("=== 文字起こし結果 ===")
+print(result["text"])
+# print(result) でもいいけど情報量が多いので, 文字おこしの結果のみ表示する場合は["text"]を指定する
+
+for segment in result["segments"]:
+
+#result["segments"]は音声ファイルを「時間ごとに小分けした区間」に分けた情報を持っている
+#{
+#  "id": 0,
+#  "start": 0.0,
+#  "end": 2.66,
+#  "text": "いや、ノアライルズワンピース"
+#}
+#このように保存されている
+
+    print(f"開始時間: {segment['start']:.2f}秒")
+    print(f"終了時間: {segment['end']:.2f}秒")
+    print(f"テキスト: {segment['text']}")
+    print("---")
+
+
+
+#音声ファイルを「時間ごとに小分けした区間」に分け、その区間の開始時間・終了時間・文字起こしテキストを順に表示している
+
